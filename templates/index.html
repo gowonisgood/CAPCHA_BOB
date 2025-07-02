@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>캡챠 테스트</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', Arial, sans-serif;
+        }
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            padding: 40px 32px 32px 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 340px;
+            animation: popin 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+        }
+        @keyframes popin {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        h2 {
+            margin-bottom: 18px;
+            color: #2575fc;
+            letter-spacing: 2px;
+            font-size: 2rem;
+        }
+        .captcha-img {
+            border: 2px dashed #6a11cb;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            background: #f3f3f3;
+            box-shadow: 0 2px 8px rgba(106,17,203,0.08);
+            transition: box-shadow 0.2s;
+        }
+        .captcha-img:hover {
+            box-shadow: 0 4px 16px rgba(37,117,252,0.18);
+        }
+        button, input[type="text"] {
+            border: none;
+            outline: none;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-size: 1rem;
+            margin: 6px 0;
+            transition: box-shadow 0.2s, background 0.2s;
+        }
+        button {
+            background: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(37,117,252,0.12);
+        }
+        button:hover {
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+            box-shadow: 0 4px 16px rgba(106,17,203,0.18);
+        }
+        input[type="text"] {
+            background: #f3f3f3;
+            color: #222;
+            box-shadow: 0 1px 4px rgba(37,117,252,0.08);
+            width: 160px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        #result {
+            margin-top: 18px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-height: 28px;
+            transition: color 0.3s, transform 0.3s;
+        }
+        #result.success {
+            color: #1dd1a1;
+            animation: bounce 0.5s;
+        }
+        #result.fail {
+            color: #ee5253;
+            animation: shake 0.4s;
+        }
+        @keyframes bounce {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.2); }
+            60% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>캡챠를 입력하세요</h2>
+        <img id="captcha" class="captcha-img" src="/captcha" alt="캡챠 이미지">
+        <button onclick="reloadCaptcha()">새로고침</button>
+        <form id="captcha-form" autocomplete="off">
+            <input type="text" id="captcha-input" required placeholder="캡챠 입력" maxlength="5">
+            <button type="submit">확인</button>
+        </form>
+        <div id="result"></div>
+    </div>
+    <script>
+        function reloadCaptcha() {
+            document.getElementById('captcha').src = '/captcha?' + Date.now();
+        }
+        document.getElementById('captcha-form').onsubmit = async function(e) {
+            e.preventDefault();
+            const value = document.getElementById('captcha-input').value;
+            const res = await fetch('/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ captcha: value })
+            });
+            const data = await res.json();
+            const resultDiv = document.getElementById('result');
+            if (data.success) {
+                resultDiv.textContent = '성공!';
+                resultDiv.className = 'success';
+            } else {
+                resultDiv.textContent = '실패!';
+                resultDiv.className = 'fail';
+                reloadCaptcha();
+            }
+        };
+    </script>
+</body>
+</html> 
